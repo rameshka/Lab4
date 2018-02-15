@@ -18,12 +18,12 @@ int main() {
   double *matrix_C;
   srand(time(NULL)); //seeding rand function
 
-  matrix_A = (double *)malloc(size*size * sizeof(double));//allocating memory
+  matrix_A = (double *)malloc(size*size * sizeof(double));
   matrix_B = (double *)malloc(size*size * sizeof(double));
   matrix_C = (double *)malloc(size*size * sizeof(double));
 
-  populate_row_major(matrix_A, size);
-  populate_column_major(matrix_B, size);
+  populate(matrix_A, size);
+  populate(matrix_B, size);
 
   GET_TIME(start);
 
@@ -31,7 +31,7 @@ int main() {
 
   GET_TIME(finish);
       //Calculate and Display the execution time
-  printf("Time spent for parallel optimized : %lf seconds\n", (finish - start) );
+  printf("Time spent for parallel  : %lf seconds\n", (finish - start) );
 
   free(matrix_A);
   free(matrix_B);
@@ -40,20 +40,8 @@ int main() {
   return 0;
 }
 
-//as we are assiging values to the matrix populating in column major and row major are identical
+void populate(double* matrix, int size){
 
-void populate_row_major(double* matrix, int size){
-  #pragma omp parallel for
-  for (int i = 0; i < size; i++) {
-    for (int j = 0; j < size; j++) {
-      double temp =(double)(rand()%Rand_Max);
-      matrix[size*i+j] = (double)(rand()%Rand_Max);
-    //  printf("from thread %d\n",omp_get_thread_num() );
-    }
-  }
-}
-
-void populate_column_major(double* matrix, int size){ 
   #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
@@ -74,16 +62,13 @@ void printMatrix(double* matrix,int size){
 }
 
 void metrixMultiplication(double* matrx_1,double* matrix_2,double* matrix_3, int size){
-
-  double temp;
-  #pragma omp parallel for private(temp)  
+  #pragma omp parallel for 
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
-      temp = 0.0;
+      matrix_3[i*size + j] = 0.0;
       for(int k = 0; k < size; k++){
-      temp = temp + matrx_1[i*size + k] * matrix_2[j*size + k];
+      matrix_3[i*size + j] = matrix_3[i*size + j] + matrx_1[i*size + k] * matrix_2[k*size+j];
       }
-        matrix_3[i*size + j] = temp;
     }
 
   }
