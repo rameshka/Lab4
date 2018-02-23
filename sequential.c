@@ -2,15 +2,16 @@
 #include <stdlib.h>
 #include <time.h>
 #include "timer.h"
-#include  <omp.h>
 
 int Rand_Max = 2500;
 void populate(double* matrix, int size);
-void metrixMultiplication(double* matrx_1,double* matrix_2, double* matrix_3, int size);
+void allocateMemoary(double* matrix, int size);
+void metrixMultiplication(double* matrx_1,double*matrix_2, double* matrix_3, int size);
 void printMatrix(double* matrix,int size);
 
 int main(int argc, char **argv) {
   /* code */
+
   int  size = (int)strtol(argv[1], NULL, 10);
   double start, finish;
   double *matrix_A;
@@ -25,13 +26,20 @@ int main(int argc, char **argv) {
   populate(matrix_A, size);
   populate(matrix_B, size);
 
-  GET_TIME(start);
+  //printMatrix(matrix_A,size);
 
+  //printf("\n\n");
+  //printMatrix(matrix_B,size);
+
+  GET_TIME(start);
   metrixMultiplication(matrix_A,matrix_B,matrix_C, size);
+
 
   GET_TIME(finish);
       //Calculate and Display the execution time
-  printf("Time spent for parallel  : %lf seconds\n", (finish - start) );
+  printf("Time spent for serial : %lf seconds\n", (finish - start) );
+  //printf("\n\n");
+  //printMatrix(matrix_C,size);
 
   free(matrix_A);
   free(matrix_B);
@@ -42,12 +50,9 @@ int main(int argc, char **argv) {
 
 void populate(double* matrix, int size){
 
-  #pragma omp parallel for
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
-      double temp =(double)(rand()%Rand_Max);
       matrix[size*i+j] = (double)(rand()%Rand_Max);
-    //  printf("from thread %d\n",omp_get_thread_num() );
     }
   }
 }
@@ -62,13 +67,13 @@ void printMatrix(double* matrix,int size){
 }
 
 void metrixMultiplication(double* matrx_1,double* matrix_2,double* matrix_3, int size){
-  #pragma omp parallel for 
   for (int i = 0; i < size; i++) {
     for (int j = 0; j < size; j++) {
-      matrix_3[i*size + j] = 0.0;
+      double temp = 0;
       for(int k = 0; k < size; k++){
-      matrix_3[i*size + j] = matrix_3[i*size + j] + matrx_1[i*size + k] * matrix_2[k*size+j];
+      temp = temp + matrx_1[i*size + k] * matrix_2[k*size+j];
       }
+        matrix_3[i*size + j] = temp;
     }
 
   }
